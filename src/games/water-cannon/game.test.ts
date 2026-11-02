@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   CANNON,
   TANK_SIZE,
+  bottleOutline,
   createState,
   fire,
   isHit,
@@ -76,5 +77,21 @@ describe('water cannon', () => {
     const slow = scoreForHit({ ...target, speed: 60 });
     const fast = scoreForHit({ ...target, speed: -180 });
     expect(Math.max(fast, slow)).toBeGreaterThanOrEqual(slow);
+  });
+
+  it('draws each bottle inside its target, standing upright on the rail', () => {
+    const outline = bottleOutline(target);
+    for (const point of outline) {
+      expect(Math.abs(point.x - target.x)).toBeLessThanOrEqual(target.radius);
+      expect(Math.abs(point.y - target.y)).toBeLessThanOrEqual(target.radius);
+    }
+    const ys = outline.map((p) => p.y);
+    expect(Math.max(...ys)).toBe(target.y + target.radius);
+    // Narrow neck at the top, wide base at the bottom.
+    const width = (y: number) => {
+      const xs = outline.filter((p) => p.y === y).map((p) => p.x);
+      return Math.max(...xs) - Math.min(...xs);
+    };
+    expect(width(Math.min(...ys))).toBeLessThan(width(Math.max(...ys)));
   });
 });

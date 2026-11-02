@@ -110,6 +110,74 @@ export function step(state: WaterCannonState, dt: number): void {
   if (state.tank === 0 && state.shots.length === 0) state.phase = 'over';
 }
 
+/**
+ * The right half of a contour bottle, top to bottom, as offsets from the
+ * target's centre in units of its radius. The left half mirrors it.
+ */
+const BOTTLE_PROFILE: readonly (readonly [number, number])[] = [
+  [0.15, -0.86],
+  [0.17, -0.5],
+  [0.4, -0.15],
+  [0.42, 0.15],
+  [0.31, 0.45],
+  [0.42, 0.75],
+  [0.38, 1],
+];
+const BOTTLE_CAP = { top: -1, bottom: -0.86, halfWidth: 0.19 };
+
+/** The outline of the bottle drawn for a target, closed, in canvas pixels. */
+export function bottleOutline(target: Target): { x: number; y: number }[] {
+  const { x, y, radius } = target;
+  const right = BOTTLE_PROFILE.map(([dx, dy]) => ({ x: x + dx * radius, y: y + dy * radius }));
+  const left = [...BOTTLE_PROFILE].reverse().map(([dx, dy]) => ({
+    x: x - dx * radius,
+    y: y + dy * radius,
+  }));
+  return [...right, ...left];
+}
+
+/** Draws a target as an aqua blue soda bottle with a red cap and label. */
+function drawBottle(ctx: CanvasRenderingContext2D, target: Target) {
+  const { colors } = theme;
+  const { x, y, radius } = target;
+  const outline = bottleOutline(target);
+
+  // Smooth the outline by curving through the midpoints between its points.
+  ctx.beginPath();
+  ctx.moveTo(outline[0].x, outline[0].y);
+  for (let i = 1; i < outline.length - 1; i++) {
+    const mid = {
+      x: (outline[i].x + outline[i + 1].x) / 2,
+      y: (outline[i].y + outline[i + 1].y) / 2,
+    };
+    ctx.quadraticCurveTo(outline[i].x, outline[i].y, mid.x, mid.y);
+  }
+  ctx.lineTo(outline[outline.length - 1].x, outline[outline.length - 1].y);
+  ctx.closePath();
+
+  ctx.save();
+  ctx.fillStyle = colors.water;
+  ctx.fill();
+  ctx.clip();
+  // The red label wrapped round the bottle's belly.
+  ctx.fillStyle = colors.stripeA;
+  ctx.fillRect(x - radius, y - 0.05 * radius, radius * 2, 0.32 * radius);
+  ctx.fillStyle = colors.stripeB;
+  ctx.fillRect(x - radius, y + 0.09 * radius, radius * 2, 0.04 * radius);
+  // A highlight down the glass.
+  ctx.globalAlpha = 0.45;
+  ctx.fillRect(x + 0.12 * radius, y - 0.6 * radius, 0.08 * radius, 1.4 * radius);
+  ctx.restore();
+
+  ctx.fillStyle = colors.stripeA;
+  ctx.fillRect(
+    x - BOTTLE_CAP.halfWidth * radius,
+    y + BOTTLE_CAP.top * radius,
+    BOTTLE_CAP.halfWidth * 2 * radius,
+    (BOTTLE_CAP.bottom - BOTTLE_CAP.top) * radius,
+  );
+}
+
 function draw(
   ctx: CanvasRenderingContext2D,
   state: WaterCannonState,
@@ -132,20 +200,7 @@ function draw(
     ctx.fillRect(0, rail.y + rail.radius + 4, WIDTH, 6);
   }
 
-  for (const target of state.targets) {
-    ctx.fillStyle = colors.stripeB;
-    ctx.beginPath();
-    ctx.arc(target.x, target.y, target.radius, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.fillStyle = colors.stripeA;
-    ctx.beginPath();
-    ctx.arc(target.x, target.y, target.radius * 0.6, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.fillStyle = colors.stripeB;
-    ctx.beginPath();
-    ctx.arc(target.x, target.y, target.radius * 0.25, 0, Math.PI * 2);
-    ctx.fill();
-  }
+  for (const target of state.targets) drawBottle(ctx, target);
 
   ctx.fillStyle = '#4fc3f7';
   for (const shot of state.shots) {
