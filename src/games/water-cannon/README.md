@@ -1,6 +1,6 @@
 # Water Cannon
 
-Soak the targets on the three rails before your tank runs dry.
+Soak the targets, aqua blue soda bottles riding three rails, before your tank runs dry.
 
 ## How to play
 
