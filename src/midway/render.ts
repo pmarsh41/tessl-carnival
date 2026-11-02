@@ -1667,7 +1667,7 @@ export function drawArch(ctx: Ctx, map: MidwayMap, t: number) {
     ctx.beginPath();
     ctx.ellipse(0, -10, 12, 9, 0, Math.PI, Math.PI * 2);
     ctx.fill();
-    signBoard(ctx, 'TESSL CARNIVAL', 92, 20, {
+    signBoard(ctx, "PHIL'S CARNIVAL", 92, 20, {
       board: palette.wood,
       edge: palette.woodDark,
       text: palette.gold,
