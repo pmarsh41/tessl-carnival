@@ -3,13 +3,13 @@ import { theme } from '../carnival';
 const { colors } = theme;
 
 /**
- * The midway map's daytime palette. Tent reds, creams and golds come from the
+ * The midway map's sunset palette. Tent reds, creams and golds come from the
  * carnival theme; the sky, grass, paths and other scenery shades only the map
  * uses live here.
  */
 export const palette = {
-  sky: '#38b4e6',
-  skyHigh: '#1f9bd6',
+  sky: '#f7913a',
+  skyHigh: '#8e3a8f',
   cloud: '#bfeafc',
   cloudShade: '#94d8f4',
   haze: '#5fc3b8',
